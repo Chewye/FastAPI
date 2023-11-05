@@ -1,6 +1,7 @@
 from enum import Enum
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
 from pydantic import BaseModel
+
 
 app = FastAPI()
 
@@ -40,8 +41,34 @@ post_db = [
 
 @app.get('/')
 def root():
-    # ваш код здесь
-    ...
+    return 'string'
 
-# ваш код здесь
-...
+
+@app.post('/post', response_model=Timestamp)
+def get_post_():   
+    return post_db[0]
+
+
+@app.get('/dog', response_model=list[Dog])
+def get_dogs(kind: DogType):
+    
+    result = [{'name': i.name, 'pk': i.pk, 'kind': i.kind.value} for i in dogs_db.values() if i.kind.value==kind]
+    return result
+
+
+@app.post('/dog', response_model=Dog)
+def create_dog(body: Dog):
+    dogs_db[body.pk] = body
+    return body
+
+
+@app.get('/dog/{pk}', response_model=Dog)
+def get_dog_by_pk(pk: int= Path(..., gt=min(dogs_db.keys()), le=max(dogs_db.keys()))):
+    return dogs_db[pk]
+
+
+@app.patch('/dog/{pk}', response_model=Dog)
+def update_dog(body: Dog, pk: int= Path(..., gt=min(dogs_db.keys()), le=max(dogs_db.keys()))):
+    dogs_db[pk] = body
+    return body
+
